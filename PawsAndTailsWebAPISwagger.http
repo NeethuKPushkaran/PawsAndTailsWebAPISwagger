@@ -1,0 +1,6 @@
+@PawsAndTailsWebAPISwagger_HostAddress = http://localhost:5065
+
+GET {{PawsAndTailsWebAPISwagger_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
