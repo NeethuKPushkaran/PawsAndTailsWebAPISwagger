@@ -4,6 +4,9 @@ using PawsAndTailsWebAPISwagger.Models;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using AutoMapper;
+using PawsAndTailsWebAPISwagger.DTOs;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
@@ -14,10 +17,12 @@ namespace PawsAndTailsWebAPISwagger.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
+        private readonly IMapper _mapper;
 
-        public ProductController(IProductRepository productRepository)
+        public ProductController(IProductRepository productRepository, IMapper mapper)
         {
             _productRepository = productRepository;
+            _mapper = mapper;
         }
 
         //GET: api/Product
@@ -25,55 +30,73 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         public async Task<IActionResult> GetAllProducts()
         {
             var products = await _productRepository.GetAllAsync();
-            return Ok(products);
+            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            return Ok(productDtos);
         }
 
         //GET: api/Product/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProductById(int id)
+        public async Task<ActionResult<ProductDto>> GetProductById(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
             if (product == null)
             {
                 return NotFound();
             }
-            return Ok(product);
+            var productDto = _mapper.Map<ProductDto>(product);
+            return Ok(productDto);
         }
 
         //GET: api/Product/Category/{categoryId}
         [HttpGet("Category/{CategoryId}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProductByCategory(int categoryId)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductByCategory(int categoryId)
         {
             var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
-            return Ok(products);
+            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            return Ok(productDtos);
         }
 
         //GET: api/Product/TopRated/{count}
         [HttpGet("TopRated/{count}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetTopRatedProducts(int count)
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetTopRatedProducts(int count)
         {
             var products = await _productRepository.GetTopRatedProductsAsync(count);
-            return Ok(products);
+            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+            return Ok(productDtos);
         }
 
         //POST: api/Product
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<Product>> AddProduct(Product product)
+        public async Task<ActionResult<ProductDto>> AddProduct([FromBody] ProductDto productDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var product = _mapper.Map<Product>(productDto);
             await _productRepository.AddAsync(product);
-            return CreatedAtAction(nameof(GetAllProducts), new {id = product.ProductId }, product);
+            var createdProductDto = _mapper.Map<ProductDto>(product);
+            return CreatedAtAction(nameof(GetProductById), new {id = createdProductDto.ProductId }, createdProductDto);
         }
 
         //PUT: api/Product/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> UpdateProduct(int id, Product product)
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductDto productDto)
         {
-            if(id != product.ProductId)
+            if(id != productDto.ProductId)
             {
                 return BadRequest();
             }
+
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var product = _mapper.Map<Product>(productDto);
 
             try
             {

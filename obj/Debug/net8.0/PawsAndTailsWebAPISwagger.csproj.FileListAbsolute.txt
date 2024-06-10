@@ -138,3 +138,4 @@ H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPI
 H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\BouncyCastle.Crypto.dll
 H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\obj\Debug\net8.0\PawsAndTailsWebAPISwagger.sourcelink.json
+H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\AutoMapper.dll
