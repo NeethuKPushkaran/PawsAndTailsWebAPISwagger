@@ -15,5 +15,6 @@ namespace PawsAndTailsWebAPISwagger.Models
         [Required]
         [Range(1, 100)]
         public int Quantity { get; set; }
+        public double Price { get; set; }
     }
 }

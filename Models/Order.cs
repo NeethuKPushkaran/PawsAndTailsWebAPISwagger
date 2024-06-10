@@ -10,6 +10,7 @@ namespace PawsAndTailsWebAPISwagger.Models
 
         [Required]
         public DateTime OrderDate { get; set; }
+        public double TotalAmount { get; set; }
 
         public ICollection<OrderDetail> OrderDetails { get; set; }
     }
