@@ -5,13 +5,8 @@ namespace PawsAndTailsWebAPISwagger
 {
     public static class Seed
     {
-        //private readonly ApplicationDbContext dataContext;
         public static void SeedDataContext(ApplicationDbContext context)
         {
-        //   this.dataContext = context;
-        //}
-        //public void SeedDataContext()
-        //{
             if(!context.Categories.Any())
             {
                 var CategoryList = new List<Category>

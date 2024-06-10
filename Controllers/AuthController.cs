@@ -23,22 +23,52 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             _configuration = configuration;
         }
 
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == loginDto.Username && u.Password == loginDto.Password);
-            if (user == null) return Unauthorized();
-            
-            var token = GenerateJwtToken(user);
-            return Ok(new { token });
+            if(ModelState.IsValid)
+            {
+                var user = await _context.Users.SingleOrDefaultAsync(u => u.UserName == loginDto.Username);
+
+                if (user != null && BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
+                {
+                    var token = GenerateJwtToken(user);
+                    return Ok(new { token });
+                }
+                return Unauthorized();
+            }
+            return BadRequest(ModelState);
         }
 
+
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp([FromBody] User user)
+        public async Task<IActionResult> SignUp([FromBody] SignUpDto signupDto)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return Ok();
+            if (ModelState.IsValid)
+            {
+                var existingUser = await _context.Users.SingleOrDefaultAsync(u => u.UserName == signupDto.UserName);
+                if (existingUser != null)
+                {
+                    return BadRequest(new { Message = "Username is already taken" });
+                }
+
+                var user = new User
+                {
+                    UserName = signupDto.UserName,
+                    Email = signupDto.Email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(signupDto.Password),
+                    IsAdmin = signupDto.IsAdmin
+                };
+
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
+
+                var token = GenerateJwtToken(user);
+                return Ok(new { token });
+            }
+
+            return BadRequest(ModelState);
         }
         private string GenerateJwtToken(User user)
         {
@@ -53,7 +83,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
 
             var token = new JwtSecurityToken(
                issuer: _configuration["Jwt:Issuer"],
-               audience: _configuration["Jwt:Issuer"],
+               audience: _configuration["Jwt:Audience"],
                claims: claims,
                expires: DateTime.Now.AddMinutes(30),
                signingCredentials: creds

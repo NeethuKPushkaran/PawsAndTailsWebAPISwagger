@@ -14,35 +14,46 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
+        public async Task<IEnumerable<Product>> GetAllAsync()
         {
             return await _context.Products.ToListAsync();
         }
-        public async Task<Product> GetProductByIdAsync(int id)
+        public async Task<Product> GetByIdAsync(int id)
         {
             return await _context.Products.FindAsync(id);
         }
 
-        public async Task AddProductAsync(Product product)
+        public async Task AddAsync(Product product)
         {
-            _context.Products.Add(product);
+            await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateProductAsync(Product product)
+        public async Task UpdateAsync(Product product)
         {
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
         }
 
-        public async Task RemoveProductAsync(int id)
+        public async Task DeleteAsync(Product product)
         {
-            var product = await _context.Products.FindAsync(id);
-            if(product != null)
-            {
-                _context.Products.Remove(product);
-                await _context.SaveChangesAsync();
-            }
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId)
+        {
+            return await _context.Products
+                                 .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId))
+                                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetTopRatedProductsAsync(int count)
+        {
+            return await _context.Products
+                                 .OrderByDescending(p => p.Rating)
+                                 .Take(count)
+                                 .ToListAsync();
         }
     }
 }

@@ -8,6 +8,6 @@ namespace PawsAndTailsWebAPISwagger.Models
 
         [Required, StringLength(50)]
         public string Name { get; set; }
-        public ICollection<ProductCategory> ProductCategories { get; set; }
+        public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
     }
 }

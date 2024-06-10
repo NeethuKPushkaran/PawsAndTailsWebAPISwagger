@@ -18,5 +18,7 @@ namespace PawsAndTailsWebAPISwagger.Models
         [Required]
         [Range(0.01, 10000.00)]
         public decimal UnitPrice { get; set; }
+
+        public Product Product { get; set; }
     }
 }

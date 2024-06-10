@@ -14,7 +14,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-//builder.Services.AddTransient<Seed>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
@@ -22,13 +21,46 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
-//JWT Authentication
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PawsAndTailsWebAPISwagger API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please insert JWT with Bearer into field",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
+
+//JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+})
+.AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -37,45 +69,13 @@ builder.Services.AddAuthentication(options =>
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
-    });
+});
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(
-//    c =>
-//{
-//    c.SwaggerDoc("v1", new OpenApiInfo { Title = "PawsAndTailsWebAPISwagger API", Version = "v1" });
-//    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-//    {
-//        In = ParameterLocation.Header,
-//        Description = "Please insert JWT with Bearer into field",
-//        Name = "Authorization",
-//        Type = SecuritySchemeType.ApiKey,
-//        BearerFormat = "JWT",
-//        Scheme = "Bearer"
-//    });
-//    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-//    {
-//        {
-//            new OpenApiSecurityScheme
-//            {
-//                Reference = new OpenApiReference
-//                {
-//                    Type = ReferenceType.SecurityScheme,
-//                    Id = "Bearer"
-//                }
-//            },
-//            new string[] { }
-//        }
-//    });
-//}
-);
 
-builder.Services.AddAuthorization(options =>
-    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"))
-);
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -84,27 +84,18 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+
+    //Enable middleware to serve generated Swagger as a JSON endpoint.
     app.UseSwagger();
-    app.UseSwaggerUI(
-        //c => c.SwaggerEndpoint("/Swagger/v1/Swagger.json", "PawsAndTailsWebAPISwagger API v1")
-        );
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "PawsAndTailsWebAPISwagger API v1");
+        c.RoutePrefix = string.Empty; //Serve the Swagger UI at the root of the application
+    });
 }
 
-////Seed Class
-
-//if (args.Length == 1 && args[0].ToLower() == "seeddata")
-//    SeedData(app);
-
-//void SeedData(IHost app)
-//{
-//    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
-
-//    using (var scope = scopedFactory.CreateScope())
-//    {
-//        var service = scope.ServiceProvider.GetService<Seed>();
-//        service.SeedDataContext();
-//    }
-//}
+//Add global exception handling middleware
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
@@ -112,7 +103,10 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
+
 app.MapControllers();
+
+//Seed Data
 
 using (var scope = app.Services.CreateScope())
 {
@@ -130,10 +124,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-
-//Add global exception handling middleware
-
-app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 public class ExceptionHandlingMiddleware
 {

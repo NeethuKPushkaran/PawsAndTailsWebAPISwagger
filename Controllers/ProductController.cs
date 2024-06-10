@@ -3,11 +3,14 @@ using PawsAndTailsWebAPISwagger.Interfaces;
 using PawsAndTailsWebAPISwagger.Models;
 using System.Net.Sockets;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
+    [Route("api/[controller]")]
+    
     public class ProductController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
@@ -16,49 +19,93 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         {
             _productRepository = productRepository;
         }
+
+        //GET: api/Product
         [HttpGet]
-        public async Task<IEnumerable<Product>> GetAllProducts()
+        public async Task<IActionResult> GetAllProducts()
         {
-            return await _productRepository.GetAllProductsAsync();
+            var products = await _productRepository.GetAllAsync();
+            return Ok(products);
         }
 
+        //GET: api/Product/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProductById(int id)
         {
-            var product = await _productRepository.GetProductByIdAsync(id);
+            var product = await _productRepository.GetByIdAsync(id);
             if (product == null)
             {
                 return NotFound();
             }
-            return product;
+            return Ok(product);
         }
 
+        //GET: api/Product/Category/{categoryId}
+        [HttpGet("Category/{CategoryId}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductByCategory(int categoryId)
+        {
+            var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
+            return Ok(products);
+        }
+
+        //GET: api/Product/TopRated/{count}
+        [HttpGet("TopRated/{count}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetTopRatedProducts(int count)
+        {
+            var products = await _productRepository.GetTopRatedProductsAsync(count);
+            return Ok(products);
+        }
+
+        //POST: api/Product
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> AddProduct([FromBody] Product product)
+        public async Task<ActionResult<Product>> AddProduct(Product product)
         {
-            await _productRepository.AddProductAsync(product);
-            return CreatedAtAction(nameof(GetProductById), new {id = product.ProductId }, product);
+            await _productRepository.AddAsync(product);
+            return CreatedAtAction(nameof(GetAllProducts), new {id = product.ProductId }, product);
         }
 
+        //PUT: api/Product/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> UpdateProduct(int id, [FromBody] Product product)
+        public async Task<ActionResult> UpdateProduct(int id, Product product)
         {
             if(id != product.ProductId)
             {
                 return BadRequest();
             }
 
-            await _productRepository.UpdateProductAsync(product);
+            try
+            {
+                await _productRepository.UpdateAsync(product);
+            }
+
+            catch(DbUpdateConcurrencyException)
+            {
+                if(await _productRepository.GetByIdAsync(id) == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             return NoContent();
         }
 
+        //DELETE: api/Product/{id}
         [HttpDelete("{Id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> RemoveProduct(int id)
+        public async Task<IActionResult> RemoveProduct(int id)
         {
-            await _productRepository.RemoveProductAsync(id);
+            var product = await _productRepository.GetByIdAsync(id);
+            if(product == null)
+            {
+                return NotFound();
+            }
+
+            await _productRepository.DeleteAsync(product);
             return NoContent();
         }
     }

@@ -22,6 +22,6 @@ namespace PawsAndTailsWebAPISwagger.Models
         [Required]
         [Range (0, 10000)]
         public int Stock {  get; set; }
-        public ICollection<ProductCategory> ProductCategories { get; set; }
+        public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
     }
 }

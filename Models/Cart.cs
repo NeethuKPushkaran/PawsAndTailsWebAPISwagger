@@ -7,6 +7,6 @@
 
         public User User { get; set; }
 
-        public ICollection<CartItem> CartItems { get; set;}
+        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }

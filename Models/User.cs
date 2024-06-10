@@ -16,5 +16,10 @@ namespace PawsAndTailsWebAPISwagger.Models
         public string Password { get; set; }
 
         public bool IsAdmin { get; set; }
+
+        public ICollection<Cart> Carts { get; set; } = new List<Cart>();
+
+        public ICollection<Order> Orders { get; set; }
+
     }
 }
