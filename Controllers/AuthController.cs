@@ -7,6 +7,7 @@ using PawsAndTailsWebAPISwagger.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
@@ -64,8 +65,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                 await _context.Users.AddAsync(user);
                 await _context.SaveChangesAsync();
 
-                var token = GenerateJwtToken(user);
-                return Ok(new { token });
+                return Ok(new { Message = "User registered successfully" });
             }
 
             return BadRequest(ModelState);

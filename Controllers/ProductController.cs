@@ -48,10 +48,24 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         }
 
         //GET: api/Product/Category/{categoryId}
-        [HttpGet("Category/{CategoryId}")]
+        [HttpGet("Category/{categoryId}")]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductByCategory(int categoryId)
         {
+            // Log the category ID
+            Console.WriteLine($"Received CategoryId: {categoryId}");
+
+            if (categoryId <= 0)
+            {
+                return BadRequest("Invalid Category ID");
+            }
             var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
+
+            //Check if any products are found for the given category
+            if (products == null || !products.Any())
+            {
+                return NotFound($"No Products found for category ID {categoryId}");
+            }
+
             var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
             return Ok(productDtos);
         }
@@ -72,13 +86,40 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         {
             if (!ModelState.IsValid)
             {
+                foreach(var value in ModelState.Values)
+                {
+                    foreach(var error in value.Errors)
+                    {
+                        Console.WriteLine($"ModelState error: {error.ErrorMessage}");
+                    }
+                }
                 return BadRequest(ModelState);
             }
 
-            var product = _mapper.Map<Product>(productDto);
-            await _productRepository.AddAsync(product);
-            var createdProductDto = _mapper.Map<ProductDto>(product);
-            return CreatedAtAction(nameof(GetProductById), new {id = createdProductDto.ProductId }, createdProductDto);
+            try
+            {
+                //Log the received product DTO
+                Console.WriteLine($"Received ProductDto: {productDto.Name}, {productDto.Description}");
+
+                var product = _mapper.Map<Product>(productDto);
+
+                //Log the mapped product
+                Console.WriteLine($"Mapped Product: {product.Name}, {product.Description}");
+
+                await _productRepository.AddAsync(product);
+
+                //Log the added product
+                Console.WriteLine($"Added Product: {product.ProductId}, {product.Name}");
+
+                var createdProductDto = _mapper.Map<ProductDto>(product);
+                return CreatedAtAction(nameof(GetProductById), new { id = createdProductDto.ProductId }, createdProductDto);
+            }
+            catch (Exception ex)
+            {
+                //Log the exception
+                Console.WriteLine($"Exception while adding product: {ex.Message}");
+                return StatusCode(500, "An error occurred while adding the product.");
+            }
         }
 
         //PUT: api/Product/{id}
