@@ -18,11 +18,13 @@ namespace PawsAndTailsWebAPISwagger.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
+        private readonly ILogger<ProductController> _logger;
 
-        public ProductController(IProductRepository productRepository, IMapper mapper)
+        public ProductController(IProductRepository productRepository, IMapper mapper, ILogger<ProductController> logger)
         {
             _productRepository = productRepository;
             _mapper = mapper;
+            _logger = logger;
         }
 
         //GET: api/Product
@@ -129,7 +131,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         {
             if(id != productDto.ProductId)
             {
-                Console.WriteLine($"Mismatched Ids: Route ID = {id}, DTO ID = {productDto.ProductId}");
+                _logger.LogWarning($"Mismatched IDs: Route ID = {id}, DTO ID = {productDto.ProductId}");
                 return BadRequest("Product ID mismatch");
             }
 
@@ -139,7 +141,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                 {
                     foreach(var error in value.Errors)
                     {
-                        Console.WriteLine($"ModelState error: {error.ErrorMessage}");
+                        _logger.LogWarning($"ModelState error: {error.ErrorMessage}");
                     }
                 }
                 return BadRequest(ModelState);
@@ -163,23 +165,25 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                     throw;
                 }
             }
-            Console.WriteLine("Product updated successfully.");
-            return NoContent();
+
+            //Log a success message
+            _logger.LogInformation("Product updated successfully.");
+            return Ok("Product updated successfully.");
         }
 
         //DELETE: api/Product/{id}
-        [HttpDelete("{Id}")]
+        [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveProduct(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
             if(product == null)
             {
-                return NotFound();
+                return NotFound("No product found for the given ID");
             }
 
             await _productRepository.DeleteAsync(product);
-            return NoContent();
+            return Ok("Product Deleted Successfully!");
         }
     }
 }
