@@ -129,11 +129,19 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         {
             if(id != productDto.ProductId)
             {
-                return BadRequest();
+                Console.WriteLine($"Mismatched Ids: Route ID = {id}, DTO ID = {productDto.ProductId}");
+                return BadRequest("Product ID mismatch");
             }
 
             if(!ModelState.IsValid)
             {
+                foreach (var value in ModelState.Values)
+                {
+                    foreach(var error in value.Errors)
+                    {
+                        Console.WriteLine($"ModelState error: {error.ErrorMessage}");
+                    }
+                }
                 return BadRequest(ModelState);
             }
 
@@ -148,13 +156,14 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             {
                 if(await _productRepository.GetByIdAsync(id) == null)
                 {
-                    return NotFound();
+                    return NotFound("Product not found.");
                 }
                 else
                 {
                     throw;
                 }
             }
+            Console.WriteLine("Product updated successfully.");
             return NoContent();
         }
 
