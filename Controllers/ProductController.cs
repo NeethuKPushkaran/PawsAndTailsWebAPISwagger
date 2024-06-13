@@ -16,13 +16,13 @@ namespace PawsAndTailsWebAPISwagger.Controllers
     
     public class ProductController : ControllerBase
     {
-        private readonly IProductRepository _productRepository;
+        private readonly IProductService _productService;
         private readonly IMapper _mapper;
         private readonly ILogger<ProductController> _logger;
 
-        public ProductController(IProductRepository productRepository, IMapper mapper, ILogger<ProductController> logger)
+        public ProductController(IProductService productService, IMapper mapper, ILogger<ProductController> logger)
         {
-            _productRepository = productRepository;
+            _productService = productService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -31,7 +31,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
-            var products = await _productRepository.GetAllAsync();
+            var products = await _productService.GetAllProductAsync();
             var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
             return Ok(productDtos);
         }
@@ -40,7 +40,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDto>> GetProductById(int id)
         {
-            var product = await _productRepository.GetByIdAsync(id);
+            var product = await _productService.GetProductByIdAsync(id);
             if (product == null)
             {
                 return NotFound();
@@ -53,14 +53,11 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [HttpGet("Category/{categoryId}")]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetProductByCategory(int categoryId)
         {
-            // Log the category ID
-            Console.WriteLine($"Received CategoryId: {categoryId}");
-
             if (categoryId <= 0)
             {
                 return BadRequest("Invalid Category ID");
             }
-            var products = await _productRepository.GetProductsByCategoryAsync(categoryId);
+            var products = await _productService.GetProductsByCategoryAsync(categoryId);
 
             //Check if any products are found for the given category
             if (products == null || !products.Any())
@@ -76,7 +73,11 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [HttpGet("TopRated/{count}")]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetTopRatedProducts(int count)
         {
-            var products = await _productRepository.GetTopRatedProductsAsync(count);
+            if(count <= 0)
+            {
+                return BadRequest("Invalid count");
+            }
+            var products = await _productService.GetTopRatedProductsAsync(count);
             var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
             return Ok(productDtos);
         }
@@ -88,38 +89,20 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         {
             if (!ModelState.IsValid)
             {
-                foreach(var value in ModelState.Values)
-                {
-                    foreach(var error in value.Errors)
-                    {
-                        Console.WriteLine($"ModelState error: {error.ErrorMessage}");
-                    }
-                }
                 return BadRequest(ModelState);
             }
 
             try
             {
-                //Log the received product DTO
-                Console.WriteLine($"Received ProductDto: {productDto.Name}, {productDto.Description}");
+                //var product = _mapper.Map<Product>(productDto);
 
-                var product = _mapper.Map<Product>(productDto);
+                //await _productRepository.AddAsync(product);
 
-                //Log the mapped product
-                Console.WriteLine($"Mapped Product: {product.Name}, {product.Description}");
-
-                await _productRepository.AddAsync(product);
-
-                //Log the added product
-                Console.WriteLine($"Added Product: {product.ProductId}, {product.Name}");
-
-                var createdProductDto = _mapper.Map<ProductDto>(product);
-                return CreatedAtAction(nameof(GetProductById), new { id = createdProductDto.ProductId }, createdProductDto);
+                var createdProduct = await _productService.AddProductAsync(productDto);
+                return CreatedAtAction(nameof(GetProductById), new { id = createdProduct.ProductId }, createdProduct);
             }
             catch (Exception ex)
             {
-                //Log the exception
-                Console.WriteLine($"Exception while adding product: {ex.Message}");
                 return StatusCode(500, "An error occurred while adding the product.");
             }
         }
@@ -131,19 +114,11 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         {
             if(id != productDto.ProductId)
             {
-                _logger.LogWarning($"Mismatched IDs: Route ID = {id}, DTO ID = {productDto.ProductId}");
                 return BadRequest("Product ID mismatch");
             }
 
             if(!ModelState.IsValid)
             {
-                foreach (var value in ModelState.Values)
-                {
-                    foreach(var error in value.Errors)
-                    {
-                        _logger.LogWarning($"ModelState error: {error.ErrorMessage}");
-                    }
-                }
                 return BadRequest(ModelState);
             }
 
@@ -151,12 +126,13 @@ namespace PawsAndTailsWebAPISwagger.Controllers
 
             try
             {
-                await _productRepository.UpdateAsync(product);
+                await _productService.UpdateProductAsync(id, productDto);
+                return Ok(new { message = "Product updated Successfully" });
             }
 
             catch(DbUpdateConcurrencyException)
             {
-                if(await _productRepository.GetByIdAsync(id) == null)
+                if(await _productService.GetProductByIdAsync(id) == null)
                 {
                     return NotFound("Product not found.");
                 }
@@ -165,10 +141,6 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                     throw;
                 }
             }
-
-            //Log a success message
-            _logger.LogInformation("Product updated successfully.");
-            return Ok("Product updated successfully.");
         }
 
         //DELETE: api/Product/{id}
@@ -176,13 +148,13 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveProduct(int id)
         {
-            var product = await _productRepository.GetByIdAsync(id);
+            var product = await _productService.GetProductByIdAsync(id);
             if(product == null)
             {
                 return NotFound("No product found for the given ID");
             }
 
-            await _productRepository.DeleteAsync(product);
+            await _productService.DeleteProductAsync(id);
             return Ok("Product Deleted Successfully!");
         }
     }

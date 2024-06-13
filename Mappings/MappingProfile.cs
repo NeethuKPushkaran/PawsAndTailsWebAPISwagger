@@ -22,6 +22,9 @@ namespace PawsAndTailsWebAPISwagger.Mappings
 
             //Map OrderDetail to OrderDetailDto and vice versa
             CreateMap<OrderDetail, OrderDetailDto>().ReverseMap();
+
+            //Map User to UserDto and vice versa
+            CreateMap<User, UserDto>().ReverseMap();
         }
     }
 }
