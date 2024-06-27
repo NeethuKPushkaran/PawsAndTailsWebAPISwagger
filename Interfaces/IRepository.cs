@@ -1,6 +1,6 @@
 ﻿namespace PawsAndTailsWebAPISwagger.Interfaces
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T>
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<T> GetByIdAsync (int id);
