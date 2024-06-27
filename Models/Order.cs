@@ -8,7 +8,7 @@ namespace PawsAndTailsWebAPISwagger.Models
         public int UserId { get; set; }
         public User User { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Order date is required.")]
         public DateTime OrderDate { get; set; }
         public double TotalAmount { get; set; }
 

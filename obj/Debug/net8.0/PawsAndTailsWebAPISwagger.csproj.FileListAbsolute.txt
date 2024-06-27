@@ -139,3 +139,9 @@ H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPI
 H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\obj\Debug\net8.0\PawsAndTailsWebAPISwagger.sourcelink.json
 H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\AutoMapper.dll
+H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
+H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.Extensions.Identity.Core.dll
+H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.Extensions.Identity.Stores.dll
+H:\Codes\PawsAndTailsBackEndSwagger\PawsAndTailsWebAPISwagger\PawsAndTailsWebAPISwagger\bin\Debug\net8.0\Microsoft.Extensions.Options.dll

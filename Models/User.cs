@@ -6,13 +6,13 @@ namespace PawsAndTailsWebAPISwagger.Models
     {
         public int UserId { get; set; }
 
-        [Required, StringLength(50)]
+        [Required(ErrorMessage = "Username is required"), StringLength(50)]
         public string UserName { get; set; }
 
-        [Required,StringLength(100), EmailAddress]
+        [Required(ErrorMessage = "Email is required"), StringLength(100), EmailAddress(ErrorMessage = "Invalid E-Mail Address")]
         public string Email { get; set; }
 
-        [Required, StringLength(100)]
+        [Required(ErrorMessage = "Password is required"), StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be atleast 6 Characters long")]
         public string Password { get; set; }
 
         public bool IsAdmin { get; set; }
@@ -21,7 +21,7 @@ namespace PawsAndTailsWebAPISwagger.Models
 
         public ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
-        public ICollection<Order> Orders { get; set; }
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
 
     }
 }

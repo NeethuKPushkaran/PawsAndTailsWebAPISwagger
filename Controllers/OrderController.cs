@@ -6,8 +6,9 @@ using PawsAndTailsWebAPISwagger.Models;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
+    
     public class OrderController : ControllerBase
     {
         private readonly IOrderRepository _orderRepository;

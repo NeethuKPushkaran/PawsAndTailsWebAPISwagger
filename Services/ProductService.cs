@@ -49,11 +49,13 @@ namespace PawsAndTailsWebAPISwagger.Services
 
         public async Task UpdateProductAsync(int id, ProductDto productDto)
         {
-            var product = _mapper.Map<Product>(productDto);
-            if(id != product.ProductId)
+            var product = await _productRepository.GetByIdAsync(id);
+            if(product == null)
             {
-                throw new KeyNotFoundException("Product Id Mismatch");
+                throw new KeyNotFoundException("Product not found.");
             }
+
+            _mapper.Map(productDto, product);
             await _productRepository.UpdateAsync(product);
         }
 

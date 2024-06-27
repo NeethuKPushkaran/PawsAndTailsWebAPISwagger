@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PawsAndTailsWebAPISwagger.Interfaces;
-using PawsAndTailsWebAPISwagger.Models;
-using System.Net.Sockets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using AutoMapper;
 using PawsAndTailsWebAPISwagger.DTOs;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
@@ -17,36 +17,52 @@ namespace PawsAndTailsWebAPISwagger.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly IMapper _mapper;
         private readonly ILogger<ProductController> _logger;
 
-        public ProductController(IProductService productService, IMapper mapper, ILogger<ProductController> logger)
+        public ProductController(IProductService productService, ILogger<ProductController> logger)
         {
             _productService = productService;
-            _mapper = mapper;
             _logger = logger;
         }
 
         //GET: api/Product
         [HttpGet]
-        public async Task<IActionResult> GetAllProducts()
+        public async Task<ActionResult<IEnumerable<ProductDto>>> GetAllProducts()
         {
-            var products = await _productService.GetAllProductAsync();
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
-            return Ok(productDtos);
+            try
+            {
+                var products = await _productService.GetAllProductAsync();
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting all products");
+                return StatusCode(500, "An internal server error occurred");
+            }
         }
 
         //GET: api/Product/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDto>> GetProductById(int id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
+            if(id <= 0)
             {
-                return NotFound();
+                return BadRequest("Invalid Product ID");
             }
-            var productDto = _mapper.Map<ProductDto>(product);
-            return Ok(productDto);
+            try
+            {
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
+                {
+                    return NotFound();
+                }
+                return Ok(product);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting the product");
+                return StatusCode(500, "An internal server error occurred");
+            }
         }
 
         //GET: api/Product/Category/{categoryId}
@@ -57,16 +73,24 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             {
                 return BadRequest("Invalid Category ID");
             }
-            var products = await _productService.GetProductsByCategoryAsync(categoryId);
-
-            //Check if any products are found for the given category
-            if (products == null || !products.Any())
+            try
             {
-                return NotFound($"No Products found for category ID {categoryId}");
+                var products = await _productService.GetProductsByCategoryAsync(categoryId);
+
+                //Check if any products are found for the given category
+                if (products == null || !products.Any())
+                {
+                    return NotFound($"No Products found for category ID {categoryId}");
+                }
+
+                return Ok(products);
             }
 
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
-            return Ok(productDtos);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting products by category");
+                return StatusCode(500, "An Internal Server Error Occurred.");
+            }
         }
 
         //GET: api/Product/TopRated/{count}
@@ -75,11 +99,18 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         {
             if(count <= 0)
             {
-                return BadRequest("Invalid count");
+                return BadRequest("Invalid count value");
             }
-            var products = await _productService.GetTopRatedProductsAsync(count);
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
-            return Ok(productDtos);
+            try
+            {
+                var products = await _productService.GetTopRatedProductsAsync(count);
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while getting top-rated products");
+                return StatusCode(500, "An Internal Server Error Occurred.");
+            }
         }
 
         //POST: api/Product
@@ -94,15 +125,12 @@ namespace PawsAndTailsWebAPISwagger.Controllers
 
             try
             {
-                //var product = _mapper.Map<Product>(productDto);
-
-                //await _productRepository.AddAsync(product);
-
                 var createdProduct = await _productService.AddProductAsync(productDto);
                 return CreatedAtAction(nameof(GetProductById), new { id = createdProduct.ProductId }, createdProduct);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while adding the product");
                 return StatusCode(500, "An error occurred while adding the product.");
             }
         }
@@ -112,17 +140,15 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductDto productDto)
         {
-            if(id != productDto.ProductId)
+            if(id != productDto.ProductId || id <= 0)
             {
-                return BadRequest("Product ID mismatch");
+                return BadRequest("Invalid Product ID");
             }
 
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
-            var product = _mapper.Map<Product>(productDto);
 
             try
             {
@@ -141,6 +167,11 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                     throw;
                 }
             }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the product");
+                return StatusCode(500, "An internal server error occurred.");
+            }
         }
 
         //DELETE: api/Product/{id}
@@ -148,14 +179,26 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveProduct(int id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if(product == null)
+            if(id <= 0)
             {
-                return NotFound("No product found for the given ID");
+                return BadRequest("Invalid Product ID");
             }
+            try
+            {
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
+                {
+                    return NotFound("No product found for the given ID");
+                }
 
-            await _productService.DeleteProductAsync(id);
-            return Ok("Product Deleted Successfully!");
+                await _productService.DeleteProductAsync(id);
+                return Ok("Product Deleted Successfully!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while deleting the product");
+                return StatusCode(500, "An internal server error occurred");
+            }
         }
     }
 }

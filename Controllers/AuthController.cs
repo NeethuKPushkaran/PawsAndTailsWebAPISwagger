@@ -17,36 +17,55 @@ namespace PawsAndTailsWebAPISwagger.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(ApplicationDbContext context, IConfiguration configuration)
+        public AuthController(ApplicationDbContext context, IConfiguration configuration, ILogger<AuthController> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            if(ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
             {
                 var user = await _context.Users.SingleOrDefaultAsync(u => u.UserName == loginDto.Username);
 
-                if (user != null && BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
+                if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.Password))
                 {
-                    var token = GenerateJwtToken(user);
-                    return Ok(new { token });
+                    return Unauthorized();
                 }
-                return Unauthorized();
-            }
-            return BadRequest(ModelState);
-        }
 
+                var token = GenerateJwtToken(user);
+                return Ok(new { token });
+            }
+
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during login.");
+                return StatusCode(500, "An internal server error occured.");
+            }
+ 
+        }
 
         [HttpPost("SignUp")]
         public async Task<IActionResult> SignUp([FromBody] SignUpDto signupDto)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                _logger.LogInformation("Starting sign-up process for user: {UserName}", signupDto.UserName);
+
                 var existingUser = await _context.Users.SingleOrDefaultAsync(u => u.UserName == signupDto.UserName);
                 if (existingUser != null)
                 {
@@ -58,7 +77,8 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                     UserName = signupDto.UserName,
                     Email = signupDto.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(signupDto.Password),
-                    IsAdmin = signupDto.IsAdmin
+                    IsAdmin = signupDto.IsAdmin,
+                    IsBlocked = false //default value for new users
                 };
 
                 await _context.Users.AddAsync(user);
@@ -67,7 +87,16 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                 return Ok(new { Message = "User registered successfully" });
             }
 
-            return BadRequest(ModelState);
+            catch(DbUpdateException dbEx)
+            {
+                return StatusCode(500, "A databse error occurred.");
+            }
+
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "An Error occurred during signup");
+                return StatusCode(500, "An internal server error occurred.");
+            }
         }
         private string GenerateJwtToken(User user)
         {

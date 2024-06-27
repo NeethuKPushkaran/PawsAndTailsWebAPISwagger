@@ -6,7 +6,8 @@ namespace PawsAndTailsWebAPISwagger.Models
     {
         public int CategoryId { get; set; }
 
-        [Required, StringLength(50)]
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(50, ErrorMessage = "Name must not exceed 50 characters.")]
         public string Name { get; set; }
         public ICollection<ProductCategory> ProductCategories { get; set; } = new List<ProductCategory>();
     }
