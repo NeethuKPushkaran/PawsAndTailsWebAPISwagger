@@ -24,11 +24,6 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             return await _context.Users.FindAsync(id);
         }
 
-        public async Task<User> GetByUsernameAsync(string username)
-        {
-            return await _context.Users.SingleOrDefaultAsync(u => u.UserName == username);
-        }
-
         public async Task AddAsync (User user)
         {
             await _context.Users.AddAsync(user);
@@ -46,5 +41,40 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<User> FindByEmailAsync(string email)
+        {
+            return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<User> FindByUsernameAsync(string username)
+        {
+            return await _context.Users.SingleOrDefaultAsync(u => u.UserName == username);
+        }
+
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
+
+        //        public async Task BlockUserAsync(int id)
+        //        {
+        //            var user = await _context.Users.FindAsync(id);
+        //            if (user != null)
+        //            {
+        //                user.IsBlocked = true;
+        //                await _context.SaveChangesAsync();
+        //            }
+        //        }
+
+        //        public async Task UnblockUserAsync(int id)
+        //        {
+        //            var user = await _context.Users.FindAsync(id);
+        //            if(user != null)
+        //            {
+        //                user.IsBlocked = false;
+        //                await _context.SaveChangesAsync();
+        //            }
+        //        }
     }
 }

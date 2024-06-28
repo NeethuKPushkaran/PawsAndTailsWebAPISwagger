@@ -6,175 +6,207 @@ using PawsAndTailsWebAPISwagger.Data;
 using PawsAndTailsWebAPISwagger.DTOs;
 using PawsAndTailsWebAPISwagger.Interfaces;
 using PawsAndTailsWebAPISwagger.Models;
+using System.Linq.Expressions;
 
 namespace PawsAndTailsWebAPISwagger.Services
 {
     public class UserService : IUserService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
-        private readonly ApplicationDbContext _context;
+        private readonly IUserRepository _userRepository;
 
-        public UserService(UserManager<ApplicationUser> userManager, IMapper mapper, ApplicationDbContext context)
+        public UserService(IMapper mapper, IUserRepository userRepository)
         {
-            
-            _userManager = userManager;
             _mapper = mapper;
-            _context = context;
+            _userRepository = userRepository;
         }
 
-        public async Task CreateUserAsync(ApplicationUser user, string password)
-        {
-            var result = await _userManager.CreateAsync(user, password);
-            if(result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, user.Role);
-            }
-            else
-            {
-                throw new InvalidOperationException("User Creation failed");
-            }
-        }
+        //public async Task CreateUserAsync(UserDto userDto)
+        //{
+        //    try
+        //    {
+        //        if (userDto == null) throw new ArgumentNullException(nameof(userDto));
 
-        public async Task<ApplicationUser> FindByEmailAsync(string email)
+        //        var user = _mapper.Map<ApplicationUser>(userDto);
+        //        var result = await _userManager.CreateAsync(user, userDto.Password);
+
+        //        if (result.Succeeded)
+        //        {
+        //            await _userManager.AddToRoleAsync(user, userDto.Role);
+        //        }
+        //        else
+        //        {
+        //            throw new Exception(string.Join("; ", result.Errors.Select(e => e.Description)));
+        //        }
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        throw new Exception($"An error occurred while creating the user: {ex.Message}", ex);
+        //    }
+        //}
+
+        public async Task AddUserAsync(UserDto userDto)
         {
-            return await _userManager.FindByEmailAsync(email);
-        }
-        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
-        {
-            var users = await _userManager.Users.ToListAsync();
-            return _mapper.Map<IEnumerable<UserDto>>(users);
+            try
+            {
+                if (userDto == null) throw new ArgumentNullException(nameof(userDto));
+
+                var existingUser = await _userRepository.FindByUsernameAsync(userDto.UserName);
+
+                if(existingUser != null)
+                {
+                    throw new InvalidOperationException("Username is already taken");
+                }
+
+                var user = _mapper.Map<User>(userDto);
+                await _userRepository.AddAsync(user);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An error occurred while adding the user: {ex.Message}");
+            }
         }
 
         public async Task<UserDto> GetUserByIdAsync(int id)
         {
-            if(id <= 0)
+            try
             {
-                throw new ArgumentException("Invalid User ID");
+                if (id <= 0)
+                {
+                    throw new ArgumentException("Invalid User ID");
+                }
+
+                var user = await _userRepository.GetByIdAsync(id);
+                if (user == null)
+                {
+                    throw new KeyNotFoundException("User not found");
+                }
+
+                return _mapper.Map<UserDto>(user);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"An error occurred while retrieving the user by ID: {ex.Message}");
+            }
+        }
+
+        public async Task<UserDto> FindByEmailAsync(string email)
+        {
+            try
+            {
+                var user = await _userRepository.FindByEmailAsync(email);
+
+                if (user == null)
+                {
+                    throw new KeyNotFoundException("User not found.");
+                }
+
+                return _mapper.Map<UserDto>(user);
             }
 
-            var user = await _userManager.FindByIdAsync(id.ToString());
-            if(user == null)
+            catch(Exception ex)
             {
-                throw new KeyNotFoundException("User not found");
+                throw new Exception($"An Error occurred while retrieving the user by email: {ex.Message}", ex);
             }
-
-            return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> GetUserByNameAsync(string username)
         {
-            if (string.IsNullOrWhiteSpace(username))
+            try
             {
-                throw new ArgumentException("Username cannot be null or whitespace");
-            }
+                if (string.IsNullOrEmpty(username))
+                {
+                    throw new ArgumentNullException(nameof(username));
+                }
 
-            //var user = await _userManager.Users.SingleOrDefaultAsync(u => u.UserName == username);
-            var user = await _userManager.FindByNameAsync(username);
-            if(user == null)
+                var user = await _userRepository.FindByUsernameAsync(username);
+                if (user == null)
+                {
+                    throw new KeyNotFoundException("User not found.");
+                }
+
+                return _mapper.Map<UserDto>(user);
+            }
+            catch (Exception ex)
             {
-                throw new KeyNotFoundException("User not found");
+                throw new Exception($"An error occurred while retrieving the user by username: {ex.Message}", ex);
             }
-
-            return _mapper.Map<UserDto>(user);
         }
-
-        public async Task AddUserAsync(UserDto userDto)
+        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
-            var existingUser = await _userManager.Users.SingleOrDefaultAsync(u => u.UserName == userDto.UserName);
-            if(existingUser != null)
+            try
             {
-                throw new InvalidOperationException("Username is already taken");
+                var users = await _userRepository.GetAllUsersAsync();
+                return _mapper.Map<IEnumerable<UserDto>>(users);
             }
-
-            var user = _mapper.Map<ApplicationUser>(userDto);
-            var result = await _userManager.CreateAsync(user, userDto.Password);
-            if(result.Succeeded)
+            catch(Exception ex)
             {
-                await _userManager.AddToRoleAsync(user, userDto.Role);
-            }
-            else
-            {
-                throw new InvalidOperationException("User Creation Failed");
+                throw new Exception($"An error occurred while retrieving all users: {ex.Message}", ex);
             }
         }
 
         public async Task UpdateUserAsync(UserDto userDto)
         {
-            if(userDto.UserId <= 0)
+            try
             {
-                throw new ArgumentException("Invalid User ID");
-            }
+                var user = await _userRepository.GetByIdAsync(userDto.UserId);
+                if (user == null) throw new KeyNotFoundException("User not found.");
 
-            var user = await _userManager.FindByIdAsync(userDto.UserId.ToString());
-            if(user == null)
-            {
-                throw new KeyNotFoundException("User not found");
+                _mapper.Map(userDto, user);
+                await _userRepository.UpdateAsync(user);
             }
-
-            _mapper.Map(userDto, user);
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
+            catch (Exception ex)
             {
-                throw new InvalidOperationException("User update failed");
+                throw new Exception($"An error occurred while updating the user: {ex.Message}");
             }
         }
 
         public async Task DeleteUserAsync(int id)
         {
-            if(id <= 0)
+            try
             {
-                throw new ArgumentException("Invalid User ID");
-            }
+                if (id <= 0) throw new ArgumentException("Invalid user ID.");
 
-            var user = await _userManager.FindByIdAsync(id.ToString());
-            if(user == null)
-            {
-                throw new KeyNotFoundException("User not found.");
-            }
+                var user = await _userRepository.GetByIdAsync(id);
+                if (user == null) throw new KeyNotFoundException("User not found.");
 
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
+                await _userRepository.DeleteAsync(user);
+            }
+            catch (Exception ex)
             {
-                throw new InvalidOperationException("User deletion failed");
+                throw new Exception($"An error occurred while deleting the user: {ex.Message}");
             }
         }
 
         public async Task BlockUserAsync(int id)
         {
-            if(id <= 0)
+            try
             {
-                throw new ArgumentException("Invalid User ID");
-            }
+                var user = await _userRepository.GetByIdAsync(id);
+                if (user == null) throw new KeyNotFoundException("User not found.");
 
-            var user = await _userManager.FindByIdAsync(id.ToString());
-            if(user != null)
-            {
                 user.IsBlocked = true;
-                await _userManager.UpdateAsync(user);
+                await _userRepository.UpdateAsync(user);
             }
-            else
+            catch(Exception ex)
             {
-                throw new KeyNotFoundException("User not found.");
+                throw new Exception($"An error occurred while blocking the user: {ex.Message}");
             }
         }
 
         public async Task UnblockUserAsync(int id)
         {
-            if (id <= 0)
+            try
             {
-                throw new ArgumentException("Invalid User ID");
-            }
+                var user = await _userRepository.GetByIdAsync(id);
+                if (user == null) throw new KeyNotFoundException("User not found.");
 
-            var user = await _userManager.FindByIdAsync(id.ToString());
-            if(user != null)
-            {
                 user.IsBlocked = false;
-                await _userManager.UpdateAsync(user);
+                await _userRepository.UpdateAsync(user);
             }
-            else
+            catch (Exception ex)
             {
-                throw new KeyNotFoundException("User not found.");
+                throw new Exception($"An error occurred while unblocking the user: {ex.Message}");
             }
         }
     }

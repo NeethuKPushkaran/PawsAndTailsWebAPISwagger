@@ -2,13 +2,10 @@
 
 namespace PawsAndTailsWebAPISwagger.Interfaces
 {
-    public interface IUserRepository
+    public interface IUserRepository : IRepository<User>
     {
-        Task<IEnumerable<User>> GetAllAsync();
-        Task<User> GetByIdAsync(int id);
-        Task<User> GetByUsernameAsync(string username);
-        Task AddAsync (User user);
-        Task UpdateAsync (User user);
-        Task DeleteAsync(User user);
+        Task<User> FindByEmailAsync(string email);
+        Task<User> FindByUsernameAsync(string username);
+        Task<IEnumerable<User>> GetAllUsersAsync();
     }
 }

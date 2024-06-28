@@ -7,39 +7,45 @@ using PawsAndTailsWebAPISwagger.Interfaces;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
     //Restrict all actions to admin users
     [Authorize(Roles = "Admin")]
+    [ApiController]
+    [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IMapper _mapper;
 
-        public UserController(IUserService userService, IMapper mapper)
+        public UserController(IUserService userService)
         {
             _userService = userService;
-            _mapper = mapper;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUser()
+        [HttpPost]
+        public async Task<IActionResult> AddUser([FromBody] UserDto userDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
-                var users = await _userService.GetAllUsersAsync();
-                return Ok(users);
+                await _userService.AddUserAsync(userDto);
+                return Ok("User added successfully");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error");
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserDto>> GetUserById(int id)
+        public async Task<IActionResult> GetUserById(int id)
         {
-            if(id <= 0)
+            if (id <= 0)
             {
                 return BadRequest("Invalid User ID");
             }
@@ -52,41 +58,74 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                 }
                 return Ok(user);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
             }
         }
 
-        [HttpPost]
-        public async Task<ActionResult<UserDto>> AddUser(UserDto userDto)
+        [HttpGet("email/{email}")]
+        public async Task<IActionResult> GetUserByEmail(string email)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
             try
             {
-                await _userService.AddUserAsync(userDto);
-                return CreatedAtAction(nameof(GetUserById), new { id = userDto.UserId }, userDto);
+                var user = await _userService.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    return NotFound("User not found.");
+                }
+                return Ok(user);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("username/{username}")]
+        public async Task<IActionResult> GetUserByUsername(string username)
+        {
+            try
+            {
+                var user = await _userService.GetUserByNameAsync(username);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while retrieving the user: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult>GetAllUsers()
+        {
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while retrieving users: {ex.Message}");
             }
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUser(int id, UserDto userDto)
+        public async Task<IActionResult> UpdateUser (int id, [FromBody] UserDto userDto)
         {
-            if(id <=0 || id != userDto.UserId)
-            {
-                return BadRequest("Invalid User ID");
-            }
 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            if (id <=0 || id != userDto.UserId)
+            {
+                return BadRequest("Invalid User ID or User ID mismatch");
             }
 
             try
@@ -96,7 +135,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
             catch(Exception ex)
             {
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"An error occurred while updating the user: {ex.Message}");
             }
         }
 
@@ -115,7 +154,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
             catch(Exception ex)
             {
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"An error occurred while deleting the user: {ex.Message}");
             }
         }
 
@@ -134,7 +173,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"An error occurred while blocking the user: {ex.Message}");
             }
         }
 
@@ -153,9 +192,8 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, $"An error occurred while unblocking the user: {ex.Message}");
             }
         }
-
     }
 }
