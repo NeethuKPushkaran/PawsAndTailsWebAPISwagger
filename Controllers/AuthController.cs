@@ -89,6 +89,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
 
             catch(DbUpdateException dbEx)
             {
+                _logger.LogError(dbEx, "An Error occurred during signup");
                 return StatusCode(500, "A databse error occurred.");
             }
 

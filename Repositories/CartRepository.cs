@@ -15,63 +15,77 @@ namespace PawsAndTailsWebAPISwagger.Repositories
 
        public async Task<IEnumerable<Cart>> GetAllAsync()
         {
-            return await _context.Carts.ToListAsync();
+            try
+            {
+                return await _context.Carts.Include(c => c.CartItems).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to retrieve carts", ex);
+            }
         }
 
         public async Task<Cart> GetByIdAsync(int id)
         {
-            return await _context.Carts.FindAsync(id);
+            try
+            {
+                return await _context.Carts.Include(c => c.CartItems).SingleOrDefaultAsync(c => c.CartId == id);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to retrieve cart with ID {id}", ex);
+            }
         }
 
         public async Task AddAsync(Cart cart)
         {
-            await _context.Carts.AddAsync(cart);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Carts.AddAsync(cart);
+                await _context.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("Failed to add to cart", ex);
+            }
         }
 
         public async Task UpdateAsync(Cart cart)
         {
-            _context.Entry(cart).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Entry(cart).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("FAiled to update cart", ex);
+            }
         }
 
         public async Task DeleteAsync(Cart cart)
         {
-            _context.Carts.Remove(cart);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<IEnumerable<CartItem>> GetCartItemsAsync(int cartId)
-        {
-            return await _context.CartItems
-                                 .Where(ci => ci.CartId == cartId)
-                                 .ToListAsync();
-        }
-
-        public async Task AddCartItemAsync(int cartId, CartItem cartItem)
-        {
-            var cart = await _context.Carts.FindAsync(cartId);
-            if(cart != null)
+            try
             {
-                cart.CartItems.Add(cartItem);
+                _context.Carts.Remove(cart);
                 await _context.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("Failed to delete cart", ex);
             }
         }
 
-        public async Task RemoveCartItemAsync(int cartItemId)
+        public async Task<IEnumerable<Cart>> GetCartByUserIdAsync(int userId)
         {
-            var cartItem = await _context.CartItems.FindAsync(cartItemId);
-            if(cartItem != null)
+            try
             {
-                _context.CartItems.Remove(cartItem);
-                await _context.SaveChangesAsync();
+                return await _context.Carts.Include(c => c.CartItems).Where(c => c.UserId == userId).ToListAsync();
             }
-        }
-
-        public async Task UpdateCartItemAsync(CartItem cartItem)
-        {
-            _context.Entry(cartItem).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            catch(Exception ex)
+            {
+                throw new Exception($"Failed to retrieve carts for user ID {userId}", ex);
+            }
         }
     }
 }
