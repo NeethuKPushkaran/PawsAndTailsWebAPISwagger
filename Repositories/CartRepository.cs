@@ -15,12 +15,12 @@ namespace PawsAndTailsWebAPISwagger.Repositories
 
        public async Task<IEnumerable<Cart>> GetAllAsync()
         {
-            return await _context.Carts.Include(c => c.CartItems).ToListAsync();
+            return await _context.Carts.ToListAsync();
         }
 
         public async Task<Cart> GetByIdAsync(int id)
         {
-            return await _context.Carts.Include(c => c.CartItems).FirstOrDefaultAsync(c => c.CartId == id);
+            return await _context.Carts.FindAsync(id);
         }
 
         public async Task AddAsync(Cart cart)
@@ -31,7 +31,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
 
         public async Task UpdateAsync(Cart cart)
         {
-            _context.Carts.Update(cart);
+            _context.Entry(cart).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
 
@@ -41,12 +41,37 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Cart> GetCartByUserIdAsync(int userId)
+        public async Task<IEnumerable<CartItem>> GetCartItemsAsync(int cartId)
         {
-            return await _context.Carts
-                    .Include(c => c.CartItems)
-                    .ThenInclude(ci => ci.Product)
-                    .FirstOrDefaultAsync(c => c.UserId == userId);
+            return await _context.CartItems
+                                 .Where(ci => ci.CartId == cartId)
+                                 .ToListAsync();
+        }
+
+        public async Task AddCartItemAsync(int cartId, CartItem cartItem)
+        {
+            var cart = await _context.Carts.FindAsync(cartId);
+            if(cart != null)
+            {
+                cart.CartItems.Add(cartItem);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task RemoveCartItemAsync(int cartItemId)
+        {
+            var cartItem = await _context.CartItems.FindAsync(cartItemId);
+            if(cartItem != null)
+            {
+                _context.CartItems.Remove(cartItem);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateCartItemAsync(CartItem cartItem)
+        {
+            _context.Entry(cartItem).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
     }
 }

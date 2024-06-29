@@ -1,9 +1,15 @@
-﻿namespace PawsAndTailsWebAPISwagger.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PawsAndTailsWebAPISwagger.Models
 {
     public class Cart
     {
+        [Key]
         public int CartId { get; set; }
+
+        [Required]
         public int UserId { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         public User User { get; set; }
 

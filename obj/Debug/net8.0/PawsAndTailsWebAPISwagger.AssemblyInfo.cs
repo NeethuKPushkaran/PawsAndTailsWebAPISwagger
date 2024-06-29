@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PawsAndTailsWebAPISwagger")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a673f7899732a476a597ce0eacac69a56a9eb71c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b5c90ece5faa4a3c1a62ec0249b8288020af5a64")]
 [assembly: System.Reflection.AssemblyProductAttribute("PawsAndTailsWebAPISwagger")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PawsAndTailsWebAPISwagger")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -17,25 +17,25 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             _cartRepository = cartRepository;
         }
 
-        //GET: api/Cart/User/userId
-        [HttpGet("User/{userId}")]
-        public async Task<ActionResult<Cart>> GetCartByUserId(int userId)
-        {
-            var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-            if (cart == null)
-            {
-                return NotFound();
-            }
-            return Ok(cart);
-        }
+        ////GET: api/Cart/User/userId
+        //[HttpGet("User/{userId}")]
+        //public async Task<ActionResult<Cart>> GetCartByUserId(int userId)
+        //{
+        //    var cart = await _cartRepository.GetCartByUserIdAsync(userId);
+        //    if (cart == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    return Ok(cart);
+        //}
 
         //POST: api/Cart
         [HttpPost]
-        public async Task<ActionResult<Cart>> AddCart(Cart cart)
-        {
-            await _cartRepository.AddAsync(cart);
-            return CreatedAtAction(nameof(GetCartByUserId), new {userId = cart.UserId}, cart);
-        }
+        //public async Task<ActionResult<Cart>> AddCart(Cart cart)
+        //{
+        //    await _cartRepository.AddAsync(cart);
+        //    return CreatedAtAction(nameof(GetCartByUserId), new {userId = cart.UserId}, cart);
+        //}
 
         //PUT: api/Cart/{id}
         [HttpPut("{id}")]
