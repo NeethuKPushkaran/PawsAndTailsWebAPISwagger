@@ -29,16 +29,16 @@ namespace PawsAndTailsWebAPISwagger.Services
             }
         }
 
-        public async Task<CartItemDto> GetCartItemByIdAsync(int id)
+        public async Task<CartItemDto> GetItemsByCartIdAsync(int id)
         {
             try
             {
-                var cartItem = await _cartItemRepository.GetByIdAsync(id);
-                if (cartItem == null)
+                var cartItems = await _cartItemRepository.GetItemsByCartIdAsync(id);
+                if (cartItems == null)
                 {
                     throw new KeyNotFoundException($"Cart item with ID {id} not found");
                 }
-                return _mapper.Map<CartItemDto>(cartItem);
+                return _mapper.Map<IEnumerable<CartItemDto>>(cartItems);
             }
             catch(Exception ex)
             {

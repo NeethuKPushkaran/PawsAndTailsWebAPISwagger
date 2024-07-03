@@ -48,24 +48,32 @@ namespace PawsAndTailsWebAPISwagger.Services
             }
         }
 
-        public async Task AddCartAsync(CartDto cartDto)
+        public async Task AddCartAsync(CreateCartDto cartDto)
         {
             try
             {
+                if (cartDto == null) throw new ArgumentNullException(nameof(cartDto));
+
+
                 var cart = _mapper.Map<Cart>(cartDto);
                 await _cartRepository.AddAsync(cart);
             }
             catch(Exception ex)
             {
-                throw new Exception("Failed to add cart", ex);
+                throw new Exception($"An error occurred while adding to the cart: {ex.Message}");
             }
         }
 
-        public async Task UpdateCartAsync(CartDto cartDto)
+        public async Task UpdateCartAsync(int id, UpdateCartDto cartDto)
         {
             try
             {
-                var cart = _mapper.Map<Cart>(cartDto);
+                var cart = await _cartRepository.GetByIdAsync(id);
+                if(cart == null)
+                {
+                    throw new Exception("Cart not found.");
+                }
+                _mapper.Map(cartDto, cart);
                 await _cartRepository.UpdateAsync(cart);
             }
             catch(Exception ex)
@@ -91,16 +99,16 @@ namespace PawsAndTailsWebAPISwagger.Services
             }
         }
        
-        public async Task<IEnumerable<CartDto>> GetCartsByUserIdAsync(int userId)
+        public async Task<CartDto> GetCartWithItemsAsync(int id)
         {
             try
             {
-                var carts = await _cartRepository.GetCartByUserIdAsync(userId);
-                return _mapper.Map<IEnumerable<CartDto>>(carts);
+                var carts = await _cartRepository.GetCartWithItemsAsync(id);
+                return _mapper.Map<CartDto>(carts);
             }
             catch(Exception ex)
             {
-                throw new Exception($"Failed to retrieve carts for user ID {userId}", ex);
+                throw new Exception($"Failed to retrieve carts", ex);
             }
         }
 

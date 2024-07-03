@@ -7,6 +7,18 @@ namespace PawsAndTailsWebAPISwagger.DTOs
     {
         public int CartId { get; set; }
         public int UserId { get; set; }
-        public ICollection<CartItemDto> CartItems { get; set; } = new List<CartItemDto>();
+        public DateTime CreatedAt { get; set; }
+        public List<CartItemDto> CartItems { get; set; }
+    }
+
+    public class CreateCartDto
+    {
+        public int UsertId { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class UpdateCartDto
+    {
+        public int UserId { get; set;}
     }
 }

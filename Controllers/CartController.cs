@@ -54,8 +54,12 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCart([FromBody] CartDto cartDto)
+        public async Task<IActionResult> AddCart([FromBody] CreateCartDto cartDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             try
             {
                 if(cartDto == null)
@@ -65,6 +69,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
 
                 await _cartService.AddCartAsync(cartDto);
                 return CreatedAtAction(nameof(GetCartById), new { id = cartDto.CartId }, cartDto);
+                return Ok();
             }
             catch (Exception ex)
             {

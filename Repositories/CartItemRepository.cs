@@ -18,7 +18,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.CartItems.Include(ci => ci.Product).ToListAsync();
+                return await _context.Set<CartItem>().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -30,7 +30,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.CartItems.Include(ci => ci.Product).SingleOrDefaultAsync(ci => ci.CartItemId == id);
+                return await _context.Set<CartItem>().FindAsync(id);
             }
             catch (Exception ex)
             {
@@ -38,11 +38,11 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task AddAsync(CartItem cartItem)
+        public async Task AddAsync(CartItem entity)
         {
             try
             {
-                await _context.CartItems.AddAsync(cartItem);
+                await _context.Set<CartItem>().AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -51,11 +51,11 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task UpdateAsync(CartItem cartItem)
+        public async Task UpdateAsync(CartItem entity)
         {
             try
             {
-                _context.Entry(cartItem).State = EntityState.Modified;
+                _context.Set<CartItem>().Update(entity);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -77,11 +77,14 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task<IEnumerable<CartItem>> GetCartItemsByCartIdAsync(int cartId)
+        public async Task<IEnumerable<CartItem>> GetItemsByCartIdAsync(int cartId)
         {
             try
             {
-                return await _context.CartItems.Include(ci => ci.Product).Where(ci => ci.CartId == cartId).ToListAsync();
+                return await _context.Set<CartItem>()
+                    .Where(ci => ci.CartId == cartId)
+                    .Include(ci => ci.Product)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {

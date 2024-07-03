@@ -17,7 +17,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.Carts.Include(c => c.CartItems).ToListAsync();
+                return await _context.Set<Cart>().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -29,7 +29,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.Carts.Include(c => c.CartItems).SingleOrDefaultAsync(c => c.CartId == id);
+                return await _context.Set<Cart>().FindAsync(id);
             }
             catch (Exception ex)
             {
@@ -37,11 +37,11 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task AddAsync(Cart cart)
+        public async Task AddAsync(Cart entity)
         {
             try
             {
-                await _context.Carts.AddAsync(cart);
+                await _context.Set<Cart>().AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             catch(Exception ex)
@@ -50,11 +50,11 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task UpdateAsync(Cart cart)
+        public async Task UpdateAsync(Cart entity)
         {
             try
             {
-                _context.Entry(cart).State = EntityState.Modified;
+                _context.Set<Cart>().Update(entity);
                 await _context.SaveChangesAsync();
             }
             catch(Exception ex)
@@ -63,12 +63,16 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task DeleteAsync(Cart cart)
-        {
+        public async Task DeleteAsync(Cart entity)
+        {            
             try
             {
-                _context.Carts.Remove(cart);
-                await _context.SaveChangesAsync();
+                if(entity != null)
+                {
+                    _context.Carts.Remove(entity);
+                    await _context.SaveChangesAsync();
+                }
+                
             }
             catch(Exception ex)
             {
@@ -76,15 +80,18 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task<IEnumerable<Cart>> GetCartByUserIdAsync(int userId)
+        public async Task<Cart> GetCartWithItemsAsync(int cartId)
         {
             try
             {
-                return await _context.Carts.Include(c => c.CartItems).Where(c => c.UserId == userId).ToListAsync();
+                return await _context.Set<Cart>()
+                    .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.Product)
+                    .FirstOrDefaultAsync(c => c.CartId == cartId);
             }
             catch(Exception ex)
             {
-                throw new Exception($"Failed to retrieve carts for user ID {userId}", ex);
+                throw new Exception($"Failed to retrieve carts", ex);
             }
         }
     }
