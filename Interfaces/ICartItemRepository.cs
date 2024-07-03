@@ -4,6 +4,6 @@ namespace PawsAndTailsWebAPISwagger.Interfaces
 {
     public interface ICartItemRepository : IRepository<CartItem>
     {
-        Task<IEnumerable<CartItem>> GetItemsByCartIdAsync(int cartId);
+        //Task<IEnumerable<CartItem>> GetItemsByCartIdAsync(int cartId);
     }
 }

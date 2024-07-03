@@ -4,10 +4,10 @@ namespace PawsAndTailsWebAPISwagger.Interfaces
 {
     public interface ICartItemService
     {
-        Task<IEnumerable<CartItemDto>> GetItemsByCartIdAsync(int cardId);
-        //Task<CartItemDto> GetItemsByCartIdAsync(int cardId);
-        Task AddCartItemAsync(CreateCartItemDto cartItemDto);
-        Task UpdateCartItemAsync(int id, UpdateCartItemDto cartItemDto);
-        Task DeleteCartItemAsync(int id);
+        Task<IEnumerable<CartItemDto>> GetAllCartItemsAsync();
+        Task<CartItemDto> GetCartItemByIdAsync(int cartItemId);
+        Task AddCartItemAsync(CartItemDto cartItemDto);
+        Task UpdateCartItemAsync(int cartItemid, CartItemDto cartItemDto);
+        Task DeleteCartItemAsync(int cartItemid);
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using PawsAndTailsWebAPISwagger.DTOs;
 using PawsAndTailsWebAPISwagger.Interfaces;
 using PawsAndTailsWebAPISwagger.Models;
+using System.Linq.Expressions;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
@@ -21,26 +22,12 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             _cartService = cartService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllCarts()
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetCartByUserId(int userId)
         {
             try
             {
-                var carts = await _cartService.GetAllCartsAsync();
-                return Ok(carts);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
-            }
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCartById(int id)
-        {
-            try
-            {
-                var cart = await _cartService.GetCartByIdAsync(id);
+                var cart = await _cartService.GetCartByUserIdAsync(userId);
                 if(cart == null)
                 {
                     return NotFound();
@@ -53,8 +40,22 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
         }
 
+        [HttpGet("{cartId}")]
+        public async Task<IActionResult> GetCartById(int cartId)
+        {
+            try
+            {
+                var cart = await _cartService.GetCartByIdAsync(cartId);
+                return Ok(cart);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+            }
+        }
+
         [HttpPost]
-        public async Task<IActionResult> AddCart([FromBody] CreateCartDto cartDto)
+        public async Task<IActionResult> AddCart([FromBody] CartDto cartDto)
         {
             if (!ModelState.IsValid)
             {
@@ -68,7 +69,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                 }
 
                 await _cartService.AddCartAsync(cartDto);
-                return CreatedAtAction(nameof(GetCartById), new { id = cartDto.CartId }, cartDto);
+                //return CreatedAtAction(nameof(GetCartById), new { id = cartDto.CartId }, cartDto);
                 return Ok();
             }
             catch (Exception ex)
@@ -77,24 +78,18 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCart(int id, [FromBody] CartDto cartDto)
+        [HttpPut("{cartId}")]
+        public async Task<IActionResult> UpdateCart(int cartId, [FromBody] CartDto cartDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
-                if(id != cartDto.CartId)
-                {
-                    return BadRequest("Cart ID Mismatch");
-                }
-
-                var cart = await _cartService.GetCartByIdAsync(id);
-                if (cart  == null)
-                {
-                    return NotFound();
-                }
-
-                await _cartService.UpdateCartAsync(cartDto);
-                return NoContent();
+                await _cartService.UpdateCartAsync(cartId, cartDto);
+                return Ok("Updated Successfully");
             }
             catch (Exception ex)
             {
@@ -102,35 +97,21 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCart(int id)
+        [HttpDelete("{cartId}")]
+        public async Task<IActionResult> DeleteCart(int cartId)
         {
             try
             {
-                var cart = await _cartService.GetCartByIdAsync(id);
+                var cart = await _cartService.GetCartByIdAsync(cartId);
                 if(cart == null)
                 {
                     return NotFound();
                 }
 
-                await _cartService.DeleteCartAsync(id);
-                return NoContent();
+                await _cartService.DeleteCartAsync(cartId);
+                return Ok("Deleted Successfully.");
             }
             catch(Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetCartsByUserId(int userId)
-        {
-            try
-            {
-                var carts = await _cartService.GetCartsByUserIdAsync(userId);
-                return Ok(carts);
-            }
-            catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }

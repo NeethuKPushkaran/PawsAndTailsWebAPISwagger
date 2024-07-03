@@ -18,7 +18,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.Set<CartItem>().ToListAsync();
+                return await _context.CartItems.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -30,7 +30,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.Set<CartItem>().FindAsync(id);
+                return await _context.CartItems.FirstOrDefaultAsync(c => c.CartItemId == id);
             }
             catch (Exception ex)
             {
@@ -42,7 +42,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                await _context.Set<CartItem>().AddAsync(entity);
+                await _context.CartItems.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -55,7 +55,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                _context.Set<CartItem>().Update(entity);
+                _context.CartItems.Update(entity);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -64,31 +64,16 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task DeleteAsync(CartItem cartItem)
+        public async Task DeleteAsync(CartItem entity)
         {
             try
             {
-                _context.CartItems.Remove(cartItem);
+                _context.CartItems.Remove(entity);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
                 throw new Exception("Failed to delete cart item", ex);
-            }
-        }
-
-        public async Task<IEnumerable<CartItem>> GetItemsByCartIdAsync(int cartId)
-        {
-            try
-            {
-                return await _context.Set<CartItem>()
-                    .Where(ci => ci.CartId == cartId)
-                    .Include(ci => ci.Product)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to retrieve cart items for cart ID {cartId}", ex);
             }
         }
     }

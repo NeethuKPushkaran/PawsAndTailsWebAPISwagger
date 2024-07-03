@@ -25,24 +25,23 @@ namespace PawsAndTailsWebAPISwagger.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Failed to retrieve all cart items", ex);
+                throw new KeyNotFoundException("CartItems not found.", ex);
             }
         }
-
-        public async Task<CartItemDto> GetItemsByCartIdAsync(int id)
+        public async Task<CartItemDto> GetCartItemByIdAsync(int cartItemId)
         {
             try
             {
-                var cartItems = await _cartItemRepository.GetItemsByCartIdAsync(id);
+                var cartItems = await _cartItemRepository.GetByIdAsync(cartItemId);
                 if (cartItems == null)
                 {
-                    throw new KeyNotFoundException($"Cart item with ID {id} not found");
+                    throw new KeyNotFoundException($"Cart item with ID {cartItemId} not found");
                 }
-                return _mapper.Map<IEnumerable<CartItemDto>>(cartItems);
+                return _mapper.Map<CartItemDto>(cartItems);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                throw new Exception($"Failed to retrieve cart item with ID {id}", ex);
+                throw new Exception($"Failed to retrieve cart item with ID {cartItemId}", ex);
             }
         }
 
@@ -59,11 +58,17 @@ namespace PawsAndTailsWebAPISwagger.Services
             }
         }
 
-        public async Task UpdateCartItemAsync(CartItemDto cartItemDto)
+        public async Task UpdateCartItemAsync(int cartItemId, CartItemDto cartItemDto)
         {
             try
             {
-                var cartItem = _mapper.Map<CartItem>(cartItemDto);
+                var cartItem = await _cartItemRepository.GetByIdAsync(cartItemId);
+                if (cartItem == null)
+                {
+                    throw new Exception("CartItem not found.");
+                }
+
+                _mapper.Map(cartItemDto, cartItem);
                 await _cartItemRepository.UpdateAsync(cartItem);
             }
             catch (Exception ex)
@@ -72,34 +77,34 @@ namespace PawsAndTailsWebAPISwagger.Services
             }
         }
 
-        public async Task DeleteCartItemAsync(int id)
+        public async Task DeleteCartItemAsync(int cartItemId)
         {
             try
             {
-                var cartItem = await _cartItemRepository.GetByIdAsync(id);
+                var cartItem = await _cartItemRepository.GetByIdAsync(cartItemId);
                 if (cartItem == null)
                 {
-                    throw new KeyNotFoundException($"Cart item with ID {id} not found.");
+                    throw new KeyNotFoundException($"Cart item with ID {cartItemId} not found.");
                 }
                 await _cartItemRepository.DeleteAsync(cartItem);
             }
             catch(Exception ex)
             {
-                throw new Exception($"Failed to delete cart item with ID {id}", ex);
+                throw new Exception($"Failed to delete cart item with ID {cartItemId}", ex);
             }
         }
 
-        public async Task<IEnumerable<CartItemDto>> GetCartItemsByCartIdAsync(int cartId)
-        {
-            try
-            {
-                var cartItems = await _cartItemRepository.GetCartItemsByCartIdAsync(cartId);
-                return _mapper.Map<IEnumerable<CartItemDto>>(cartItems);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to retrieve cart items for cart ID {cartId}", ex);
-            }
-        }
+        //public async Task<IEnumerable<CartItemDto>> GetCartItemsByCartIdAsync(int cartId)
+        //{
+        //    try
+        //    {
+        //        var cartItems = await _cartItemRepository.GetCartItemsByCartIdAsync(cartId);
+        //        return _mapper.Map<IEnumerable<CartItemDto>>(cartItems);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception($"Failed to retrieve cart items for cart ID {cartId}", ex);
+        //    }
+        //}
     }
 }

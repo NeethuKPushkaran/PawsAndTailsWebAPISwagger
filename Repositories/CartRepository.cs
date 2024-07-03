@@ -17,7 +17,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.Set<Cart>().ToListAsync();
+                return await _context.Carts.Include(c => c.CartItems).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -29,7 +29,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                return await _context.Set<Cart>().FindAsync(id);
+                return await _context.Carts.Include(c => c.CartItems).FirstOrDefaultAsync(c => c.CartId == id);
             }
             catch (Exception ex)
             {
@@ -37,11 +37,23 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
+        public async Task<Cart> GetCartByUserIdAsync(int userId)
+        {
+            try
+            {
+                return await _context.Carts.Include(c => c.CartItems).FirstOrDefaultAsync(c => c.UserId == userId);
+            }
+            catch(Exception ex)
+            {
+                throw new Exception($"Failed to retrieve cart with UserID {userId}", ex);
+            }
+        }
+
         public async Task AddAsync(Cart entity)
         {
             try
             {
-                await _context.Set<Cart>().AddAsync(entity);
+                await _context.Carts.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             catch(Exception ex)
@@ -54,7 +66,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         {
             try
             {
-                _context.Set<Cart>().Update(entity);
+                _context.Carts.Update(entity);
                 await _context.SaveChangesAsync();
             }
             catch(Exception ex)
@@ -77,21 +89,6 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             catch(Exception ex)
             {
                 throw new Exception("Failed to delete cart", ex);
-            }
-        }
-
-        public async Task<Cart> GetCartWithItemsAsync(int cartId)
-        {
-            try
-            {
-                return await _context.Set<Cart>()
-                    .Include(c => c.CartItems)
-                    .ThenInclude(ci => ci.Product)
-                    .FirstOrDefaultAsync(c => c.CartId == cartId);
-            }
-            catch(Exception ex)
-            {
-                throw new Exception($"Failed to retrieve carts", ex);
             }
         }
     }

@@ -24,6 +24,11 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             try
             {
                 var cartItems = await _cartItemService.GetAllCartItemsAsync();
+                if(cartItems == null)
+                {
+                    return NotFound("CartItems not found.");
+                }
+
                 return Ok(cartItems);
             }
             catch (Exception ex)
@@ -32,12 +37,12 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCartItemById(int id)
+        [HttpGet("{cartItemId}")]
+        public async Task<IActionResult> GetCartItemById(int cartItemId)
         {
             try
             {
-                var cartItem = await _cartItemService.GetCartItemByIdAsync(id);
+                var cartItem = await _cartItemService.GetCartItemByIdAsync(cartItemId);
                 if (cartItem == null)
                 {
                     return NotFound();
@@ -54,6 +59,11 @@ namespace PawsAndTailsWebAPISwagger.Controllers
         [HttpPost]
         public async Task<IActionResult> AddCartItem([FromBody] CartItemDto cartItemDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 if(cartItemDto == null)
@@ -61,7 +71,8 @@ namespace PawsAndTailsWebAPISwagger.Controllers
                     return BadRequest("CartItem object is null");
                 }
                 await _cartItemService.AddCartItemAsync(cartItemDto);
-                return CreatedAtAction(nameof(GetCartItemById), new { id = cartItemDto.CartItemId }, cartItemDto);
+                //return CreatedAtAction(nameof(GetCartItemById), new { id = cartItemDto.CartItemId }, cartItemDto);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -69,24 +80,18 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCartItem(int id, [FromBody] CartItemDto cartItemDto)
+        [HttpPut("{cartItemId}")]
+        public async Task<IActionResult> UpdateCartItem(int cartItemId, [FromBody] CartItemDto cartItemDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
-                if(id != cartItemDto.CartItemId)
-                {
-                    return BadRequest("CartItem ID Mismatch");
-                }
-
-                var cartItem = await _cartItemService.GetCartItemByIdAsync(id);
-                if(cartItem == null)
-                {
-                    return NotFound();
-                }
-
-                await _cartItemService.UpdateCartItemAsync(cartItemDto);
-                return NoContent();
+                await _cartItemService.UpdateCartItemAsync(cartItemId, cartItemDto);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -94,18 +99,18 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCartItem(int id)
+        [HttpDelete("{cartItemId}")]
+        public async Task<IActionResult> DeleteCartItem(int cartItemId)
         {
             try
             {
-                var cartItem = await _cartItemService.GetCartItemByIdAsync(id);
+                var cartItem = await _cartItemService.GetCartItemByIdAsync(cartItemId);
                 if (cartItem == null)
                 {
                     return NotFound();
                 }
 
-                await _cartItemService.DeleteCartItemAsync(id);
+                await _cartItemService.DeleteCartItemAsync(cartItemId);
                 return Ok("Deleted successfully");
             }
 
