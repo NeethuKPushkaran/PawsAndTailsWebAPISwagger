@@ -13,7 +13,7 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             _context = context;
         }
 
-       public async Task<IEnumerable<Cart>> GetAllAsync()
+        public async Task<IEnumerable<Cart>> GetAllAsync()
         {
             try
             {
@@ -43,50 +43,50 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             {
                 return await _context.Carts.Include(c => c.CartItems).FirstOrDefaultAsync(c => c.UserId == userId);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception($"Failed to retrieve cart with UserID {userId}", ex);
             }
         }
 
-        public async Task AddAsync(Cart entity)
+        public async Task AddAsync(Cart cart)
         {
             try
             {
-                await _context.Carts.AddAsync(entity);
+                await _context.Carts.AddAsync(cart);
                 await _context.SaveChangesAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception("Failed to add to cart", ex);
             }
         }
 
-        public async Task UpdateAsync(Cart entity)
+        public async Task UpdateAsync(Cart cart)
         {
             try
             {
-                _context.Carts.Update(entity);
+                _context.Carts.Update(cart);
                 await _context.SaveChangesAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                throw new Exception("FAiled to update cart", ex);
+                throw new Exception("Failed to update cart", ex);
             }
         }
 
-        public async Task DeleteAsync(Cart entity)
-        {            
+        public async Task DeleteAsync(Cart cart)
+        {
             try
             {
-                if(entity != null)
+                if (cart != null)
                 {
-                    _context.Carts.Remove(entity);
+                    _context.Carts.Remove(cart);
                     await _context.SaveChangesAsync();
                 }
-                
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception("Failed to delete cart", ex);
             }
