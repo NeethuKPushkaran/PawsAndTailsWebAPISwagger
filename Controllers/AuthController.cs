@@ -50,7 +50,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             catch(Exception ex)
             {
                 _logger.LogError(ex, "An error occurred during login.");
-                return StatusCode(500, "An internal server error occured.");
+                return StatusCode(500, "An internal server error occurred.");
             }
  
         }

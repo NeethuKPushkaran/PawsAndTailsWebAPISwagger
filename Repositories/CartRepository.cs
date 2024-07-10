@@ -37,17 +37,6 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task<Cart> GetCartByUserIdAsync(int userId)
-        {
-            try
-            {
-                return await _context.Carts.Include(c => c.CartItems).FirstOrDefaultAsync(c => c.UserId == userId);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to retrieve cart with UserID {userId}", ex);
-            }
-        }
 
         public async Task AddAsync(Cart cart)
         {
@@ -89,6 +78,18 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             catch (Exception ex)
             {
                 throw new Exception("Failed to delete cart", ex);
+            }
+        }
+
+        public async Task<Cart> GetCartByUserIdAsync(int userId)
+        {
+            try
+            {
+                return await _context.Carts.Include(c => c.CartItems).FirstOrDefaultAsync(c => c.UserId == userId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to retrieve cart with UserID {userId}", ex);
             }
         }
     }

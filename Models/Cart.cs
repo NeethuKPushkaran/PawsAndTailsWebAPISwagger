@@ -13,6 +13,8 @@ namespace PawsAndTailsWebAPISwagger.Models
 
         public User User { get; set; }
 
+        public double TotalPrice { get; set; }
+
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }
