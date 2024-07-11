@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PawsAndTailsWebAPISwagger.Models
 {
@@ -6,15 +7,11 @@ namespace PawsAndTailsWebAPISwagger.Models
     {
         [Key]
         public int CartId { get; set; }
-
-        [Required]
         public int UserId { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        [ForeignKey("UserId")]
         public User User { get; set; }
-
-        public double TotalPrice { get; set; }
-
         public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }

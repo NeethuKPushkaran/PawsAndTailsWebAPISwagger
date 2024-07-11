@@ -10,7 +10,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
     //Restrict all actions to admin users
     [Authorize(Roles = "Admin")]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("Api/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -20,7 +20,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             _userService = userService;
         }
 
-        [HttpPost]
+        [HttpPost("AddUser")]
         public async Task<IActionResult> AddUser([FromBody] UserDto userDto)
         {
             if (!ModelState.IsValid)
@@ -42,7 +42,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetUserById = {id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
             if (id <= 0)

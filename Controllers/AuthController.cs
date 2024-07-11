@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace PawsAndTailsWebAPISwagger.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("Api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -26,7 +26,7 @@ namespace PawsAndTailsWebAPISwagger.Controllers
             _logger = logger;
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)

@@ -38,11 +38,11 @@ namespace PawsAndTailsWebAPISwagger.Repositories
         }
 
 
-        public async Task AddAsync(Cart cart)
+        public async Task AddAsync(Cart entity)
         {
             try
             {
-                await _context.Carts.AddAsync(cart);
+                await _context.Carts.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -51,11 +51,11 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task UpdateAsync(Cart cart)
+        public async Task UpdateAsync(Cart entity)
         {
             try
             {
-                _context.Carts.Update(cart);
+                _context.Carts.Update(entity);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -64,13 +64,13 @@ namespace PawsAndTailsWebAPISwagger.Repositories
             }
         }
 
-        public async Task DeleteAsync(Cart cart)
+        public async Task DeleteAsync(Cart entity)
         {
             try
             {
-                if (cart != null)
+                if (entity != null)
                 {
-                    _context.Carts.Remove(cart);
+                    _context.Carts.Remove(entity);
                     await _context.SaveChangesAsync();
                 }
 
